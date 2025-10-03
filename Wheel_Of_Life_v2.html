@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wheel of Life – Chart Generator</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:#0b0d10; --card:#151a21; --muted:#aab3c5; --text:#edf2ff;
+      /* brighter palette */
+      --c-blue:#8faeff;          /* Physical Body */
+      --c-blue-light:#a9c9ff;    /* Time */
+      --c-yellow-soft:#ffeeb8;   /* Work, Career, Mission */
+      --c-yellow:#ffdb6e;        /* Finances */
+      --c-peach:#ffb6a2;         /* Relationships */
+      --c-green:#a8e0a4;         /* Emotions, Meaning */
+      --c-green-light:#c2f0a2;   /* Contribute */
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:var(--text)}
+    .container{max-width:1100px;margin:24px auto;padding:16px}
+    .card{background:linear-gradient(180deg,#171c24,#0f1319);border:1px solid #1f2630;border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    h1{font-size:1.6rem;margin:0 0 4px;letter-spacing:.4px}
+    .sub{color:var(--muted);margin-bottom:16px}
+    .controls{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;align-items:end}
+    .field{grid-column:span 3}
+    .field label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
+    .field input[type=number],.field select{width:100%;padding:6px 12px;background:var(--card);color:var(--text);border:1px solid #2a3340;border-radius:10px}
+    .switches{grid-column:span 6;display:flex;gap:16px;flex-wrap:wrap}
+    .switch{display:flex;align-items:center;gap:8px;color:var(--muted)}
+    .btns{display:flex;gap:10px}
+    button{padding:6px 30px;border-radius:10px;border:1px solid #2a3340;background:#1b2230;color:var(--text);cursor:pointer;white-space:nowrap;}
+    button.primary{background:linear-gradient(180deg,#2a61ff,#1d46c9);border-color:#2041b0}
+    button:disabled{opacity:.6;cursor:not-allowed}
+
+    .grid{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .table{background:var(--card);border:1px solid #202837;border-radius:12px;overflow:hidden}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px 12px;border-bottom:1px solid #202837}
+    th{text-align:left;font-weight:600;color:#cdd6ea;background:#121720}
+    tr:last-child td{border-bottom:0}
+
+    .label-input{width:100%;padding:6px 10px;background:#0e131a;color:var(--text);border:1px solid #273141;border-radius:8px}
+    .value-wrap{display:flex;gap:10px;align-items:center}
+    .slider{width:100%;}
+    .value-num{width:70px;padding:8px 10px;background:#0e131a;color:var(--text);border:1px solid #273141;border-radius:8px}
+
+    .chart-card{padding:16px}
+    .footer{margin-top:12px;display:flex;gap:12px;align-items:center;color:var(--muted);font-size:.85rem}
+    .tip{color:#8fb1ff}
+
+    .inspo{margin-top:20px}
+    .inspo h2{margin:0 0 10px;font-size:1.0rem}
+    .inspo small{color:var(--muted)}
+    .inspo-table .row{display:grid;grid-template-columns:250px 1fr;border:1px solid #212a39;border-top:0;font-size:0.85rem}
+    .inspo-table .row:first-child{border-top:1px solid #212a39;border-top-left-radius:12px;border-top-right-radius:12px;overflow:hidden}
+    .inspo-table .row:last-child{border-bottom-left-radius:12px;border-bottom-right-radius:12px;overflow:hidden}
+    .cell{padding:10px 12px}
+    .cat{font-weight:600}
+    .blue{background:var(--c-blue)}
+    .blue-light{background:var(--c-blue-light);color:#102244}
+    .yellow-soft{background:var(--c-yellow-soft);color:#3b3200}
+    .yellow{background:var(--c-yellow);color:#3b3200}
+    .peach{background:var(--c-peach);color:#3a1d14}
+    .green{background:var(--c-green);color:#0d2b14}
+    .green-light{background:var(--c-green-light);color:#1a3912}
+
+    .footer-note {
+      padding: 6px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    @media (max-width:900px){.controls{grid-template-columns:repeat(6,1fr)}.field{grid-column:span 6}.switches{grid-column:span 6}.grid{grid-template-columns:1fr}.inspo-table .row{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Wheel of Life</h1>
+      <div class="sub">Choose the number of areas, enter values (1–10), and render your chart. You can switch between Radar (spider) and Polar Area styles.</div>
+      <div class="controls">
+        <div class="field">
+          <label for="areas">Number of areas</label>
+          <input id="areas" type="number" min="7" max="10" value="8" />
+        </div>
+        <div class="field">
+          <label for="chartType">Chart type</label>
+          <select id="chartType">
+            <option value="radar" selected>Radar (Spider)</option>
+            <option value="polarArea">Polar Area</option>
+          </select>
+        </div>
+        <div class="switches">
+          <label class="switch"><input id="filled" type="checkbox" checked> Filled (Radar)</label>
+          <label class="switch"><input id="showScale" type="checkbox" checked> Show radial grid</label>
+        </div>
+        <div class="btns">
+          <button class="primary" id="rebuild">Build inputs</button>
+          <button id="renderBtn">Render chart</button>
+          <button id="downloadBtn">Download PNG</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="table card">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:55%">Label</th>
+              <th>Value (1–10)</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="card chart-card">
+        <canvas id="chart" height="480"></canvas>
+        <div class="footer"><span>Tip:</span> <span class="tip">Use the labels you like; values update live as you drag the sliders or edit the number fields.</span></div>
+      </div>
+    </div>
+
+    <!-- Inspiration table -->
+    <div class="card inspo">
+      <h2>Category Suggestions <small>(for inspiration)</small></h2>
+      <div class="inspo-table">
+        <div class="row">
+          <div class="cell cat blue">Physical Body</div>
+          <div class="cell">Health, Fitness, Appearance</div>
+        </div>
+        <div class="row">
+          <div class="cell cat blue-light">Time</div>
+          <div class="cell">Leisure, Rest, Recreation, Art, Music, Sports, Hobbies, Travel, Vacationing, Adventure, Humor, Fun</div>
+        </div>
+        <div class="row">
+          <div class="cell cat yellow-soft">Work, Career, Mission</div>
+          <div class="cell">Work, Business, Career, Mission</div>
+        </div>
+        <div class="row">
+          <div class="cell cat yellow">Finances</div>
+          <div class="cell">Earn money, Keep money, Grow money (Investments), Financial Freedom</div>
+        </div>
+        <div class="row">
+          <div class="cell cat peach">Relationships</div>
+          <div class="cell">Family, Friends, Wife, Kids, Parenting, Significant others, Intimacy, Romance, Love <br>Physical Environment, Community, Business partners, Employees, Colleagues</div>
+        </div>
+        <div class="row">
+          <div class="cell cat green">Emotions, Meaning</div>
+          <div class="cell">Spirituality, Relationship with a higher power and one's inner voice, Detachment from ego, Meditation, Stillness <br>Morals, Ethics <br>Mind, Emotion, Mental health, Intuition, how you feel about yourself <br>Personal Growth, Learning, Education, Lifelong learning</div>
+        </div>
+        <div class="row">
+          <div class="cell cat green-light">Contribute</div>
+          <div class="cell">Contributing, Giving Back (Time, Talent, Treasure, Legacy)<br>Celebrate</div>
+        </div>
+      </div>
+    </div>
+      <footer class="footer-note"></footer>      
+    © 2025 Sven Armbrüster
+  </footer>
+  </div>
+
+
+  <script>
+    // Labels from your table
+    const defaults = [
+      "Physical Body",
+      "Time",
+      "Work, Career, Mission",
+      "Finances",
+      "Relationships",
+      "Emotions, Meaning",
+      "Personal Growth & Learning",
+      "Contribute"
+    ];
+
+    // Color mapping to use in charts (matches the inspiration table rows)
+    const areaColors = {
+      "Physical Body": getComputedStyle(document.documentElement).getPropertyValue('--c-blue').trim() || '#8faeff',
+      "Time": getComputedStyle(document.documentElement).getPropertyValue('--c-blue-light').trim() || '#a9c9ff',
+      "Work, Career, Mission": getComputedStyle(document.documentElement).getPropertyValue('--c-yellow-soft').trim() || '#ffeeb8',
+      "Finances": getComputedStyle(document.documentElement).getPropertyValue('--c-yellow').trim() || '#ffdb6e',
+      "Relationships": getComputedStyle(document.documentElement).getPropertyValue('--c-peach').trim() || '#ffb6a2',
+      "Emotions, Meaning": getComputedStyle(document.documentElement).getPropertyValue('--c-green').trim() || '#a8e0a4',
+      "Personal Growth & Learning": '#8fd9c1',
+      "Contribute": getComputedStyle(document.documentElement).getPropertyValue('--c-green-light').trim() || '#c2f0a2',
+      "Other_9": '#c6b2f7',
+      "Other_10": '#ff9d76'
+    };
+
+    const rowsEl = document.getElementById('rows');
+    const areasEl = document.getElementById('areas');
+    const rebuildBtn = document.getElementById('rebuild');
+    const renderBtn = document.getElementById('renderBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const chartTypeEl = document.getElementById('chartType');
+    const filledEl = document.getElementById('filled');
+    const showScaleEl = document.getElementById('showScale');
+
+    let chart;
+
+    // Custom plugin: draw labels around the outer circle for Polar Area only
+const PolarOuterLabels = {
+  id: 'polar-outer-labels',
+  afterDatasetsDraw(chart) {
+    if (chart.config.type !== 'polarArea') return;
+    const { ctx } = chart;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta || !meta.data?.length) return;
+
+    // Nimm die Radial-Skala (maximaler Kreisradius)
+    const scale = chart.scales.r || meta.rScale;
+    const centerX = scale.xCenter;
+    const centerY = scale.yCenter;
+    const radius = scale.drawingArea; // immer äußerster Kreis
+    const labels = chart.data.labels || [];
+    const offset = -15;
+
+    ctx.save();
+    ctx.font = '12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+    ctx.fillStyle = '#edf2ff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    meta.data.forEach((arc, i) => {
+      const angle = (arc.startAngle + arc.endAngle) / 2;
+      const x = centerX + Math.cos(angle) * (radius + offset);
+      const y = centerY + Math.sin(angle) * (radius + offset);
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle + Math.PI / 2);
+      // Optional, um kopfstehende Labels zu drehen:
+      // if (angle > Math.PI/2 && angle < 3*Math.PI/2) ctx.rotate(Math.PI);
+      ctx.fillText(labels[i] || '', 0, 0);
+      ctx.restore();
+    });
+
+    ctx.restore();
+  }
+};
+
+    function buildRows(){
+      const n = Math.max(7, Math.min(10, parseInt(areasEl.value || 9, 10)));
+      areasEl.value = n;
+      rowsEl.innerHTML = '';
+      for(let i=0;i<n;i++){
+        const label = defaults[i] || `Area ${i+1}`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input class="label-input" value="${label}"/></td>
+          <td>
+            <div class="value-wrap">
+              <input class="slider" type="range" min="1" max="10" step="1" value="${Math.floor(Math.random()*5)+5}"/>
+              <input class="value-num" type="number" min="1" max="10" value="8"/>
+            </div>
+          </td>`;
+        rowsEl.appendChild(tr);
+        const slider = tr.querySelector('.slider');
+        const num = tr.querySelector('.value-num');
+        num.value = slider.value;
+        slider.addEventListener('input', ()=>{ num.value = slider.value; render(); });
+        num.addEventListener('input', ()=>{
+          let v = parseInt(num.value||0,10); if(isNaN(v)) v = 0; v = Math.max(1, Math.min(10, v));
+          num.value = v; slider.value = v; render();
+        });
+      }
+      render();
+    }
+
+    function getData(){
+      const labels = []; const values = []; const colors = [];
+      rowsEl.querySelectorAll('tr').forEach(tr=>{
+        const label = tr.querySelector('.label-input').value.trim() || '—';
+        const v = Number(tr.querySelector('.slider').value);
+        labels.push(label); values.push(v);
+        colors.push(areaColors[label] || 'rgba(108,166,255,0.5)');
+      });
+      return { labels, values, colors };
+    }
+
+    function render(){
+      const { labels, values, colors } = getData();
+      const type = chartTypeEl.value; // 'radar' or 'polarArea'
+      if(chart) chart.destroy();
+      const ctx = document.getElementById('chart');
+
+      const commonOptions = {
+        responsive:true,
+        animation:{duration:600},
+        plugins:{
+          legend:{display:false},
+          tooltip:{enabled:true}
+        }
+      };
+
+      const options = {
+        ...commonOptions,
+        scales:{ r:{ beginAtZero:true, min:0, max:10, ticks:{ stepSize:1, show: showScaleEl.checked }, grid:{ color: showScaleEl.checked ? 'rgba(180,190,210,0.25)' : 'transparent' } } }
+      };
+
+      let data; let plugins = [];
+      if(type === 'polarArea'){
+        data = { labels, datasets:[{ data: values, backgroundColor: colors, borderWidth:1 }] };
+        plugins = [PolarOuterLabels];
+      } else { // radar
+        data = { labels, datasets:[{ data: values, fill: filledEl.checked, pointRadius:3, pointHoverRadius:5, borderWidth:2, pointBackgroundColor: colors, backgroundColor: filledEl.checked ? 'rgba(110,132,198,0.22)' : undefined }] };
+      }
+
+      chart = new Chart(ctx, { type, data, options, plugins });
+    }
+
+    function download(){
+      if(!chart) return; const a=document.createElement('a'); a.download='wheel-of-life.png'; a.href=chart.toBase64Image(); a.click();
+    }
+
+    rebuildBtn.addEventListener('click', buildRows);
+    renderBtn.addEventListener('click', render);
+    downloadBtn.addEventListener('click', download);
+    chartTypeEl.addEventListener('change', render);
+    filledEl.addEventListener('change', render);
+    showScaleEl.addEventListener('change', render);
+
+    // initial
+    buildRows();
+  </script>
+</body>
+</html>
