@@ -27,7 +27,7 @@
     .controls{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;align-items:end}
     .field{grid-column:span 3}
     .field label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
-    .field input[type=number],.field select{width:100%;padding:6px 12px;background:var(--card);color:var(--text);border:1px solid #2a3340;border-radius:10px}
+    .field input,.field select{width:100%;padding:6px 12px;background:var(--card);color:var(--text);border:1px solid #2a3340;border-radius:10px}
     .switches{grid-column:span 6;display:flex;gap:16px;flex-wrap:wrap}
     .switch{display:flex;align-items:center;gap:8px;color:var(--muted)}
     .btns{display:flex;gap:10px}
@@ -76,33 +76,45 @@
 
     .guide{margin-top:20px}
     .guide h2{margin:0 0 12px;font-size:1.15rem}
-    .guide p{margin:0 0 12px;line-height:1.6;color:#dbe3f2}
-    .guide ul{margin:0 0 12px;padding-left:22px;color:#dbe3f2}
+    .guide p{margin:0 0 12px;line-height:1.6;color:#dbe3f2;font-size:0.85rem}
+    .guide ul{margin:0 0 12px;padding-left:22px;color:#dbe3f2;font-size:0.85rem}
     .guide li{margin:4px 0}
+    .lang-switch{display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px}
+    .lang-btn{padding:6px 14px}
+    .lang-btn.active{background:linear-gradient(180deg,#2a61ff,#1d46c9);border-color:#2041b0}
 
     @media (max-width:900px){.controls{grid-template-columns:repeat(6,1fr)}.field{grid-column:span 6}.switches{grid-column:span 6}.grid{grid-template-columns:1fr}.inspo-table .row{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="lang-switch" aria-label="Language selection">
+      <button id="langEn" class="lang-btn active" type="button">English</button>
+      <button id="langDe" class="lang-btn" type="button">Deutsch</button>
+    </div>
+
     <div class="card">
-      <h1>Wheel of Life</h1>
-      <div class="sub">Choose the number of areas, enter values (1–10), and render your chart. You can switch between Radar (spider) and Polar Area styles.</div>
+      <h1 id="title">Wheel of Life</h1>
+      <div class="sub" id="subtitle">Choose the number of areas, enter values (1–10), and render your chart. You can switch between Radar (spider) and Polar Area styles.</div>
       <div class="controls">
         <div class="field">
-          <label for="areas">Number of areas</label>
+          <label for="areas" id="areasLabel">Number of areas</label>
           <input id="areas" type="number" min="7" max="10" value="8" />
         </div>
         <div class="field">
-          <label for="chartType">Chart type</label>
+          <label for="chartType" id="chartTypeLabel">Chart type</label>
           <select id="chartType">
-            <option value="radar" selected>Radar (Spider)</option>
-            <option value="polarArea">Polar Area</option>
+            <option id="radarOption" value="radar">Radar (Spider)</option>
+            <option id="polarOption" value="polarArea" selected>Polar Area</option>
           </select>
         </div>
+        <div class="field">
+          <label for="personName" id="personNameLabel">Name</label>
+          <input id="personName" type="text" placeholder="Enter your name" value="" />
+        </div>
         <div class="switches">
-          <label class="switch"><input id="filled" type="checkbox" checked> Filled (Radar)</label>
-          <label class="switch"><input id="showScale" type="checkbox" checked> Show radial grid</label>
+          <label class="switch"><input id="filled" type="checkbox" checked> <span id="filledLabel">Filled (Radar)</span></label>
+          <label class="switch"><input id="showScale" type="checkbox" checked> <span id="showScaleLabel">Show radial grid</span></label>
         </div>
         <div class="btns">
           <button class="primary" id="rebuild">Build inputs</button>
@@ -117,8 +129,8 @@
         <table>
           <thead>
             <tr>
-              <th style="width:55%">Label</th>
-              <th>Value (1–10)</th>
+              <th id="labelHeader" style="width:55%">Label</th>
+              <th id="valueHeader">Value (1–10)</th>
             </tr>
           </thead>
           <tbody id="rows"></tbody>
@@ -126,85 +138,77 @@
       </div>
       <div class="card chart-card">
         <canvas id="chart" height="480"></canvas>
-        <div class="footer"><span>Tip:</span> <span class="tip">Use the labels you like; values update live as you drag the sliders or edit the number fields.</span></div>
+        <div class="footer"><span id="tipLabel">Tip:</span> <span class="tip" id="tipText">Use the labels you like; values update live as you drag the sliders or edit the number fields.</span></div>
       </div>
     </div>
 
     <!-- Inspiration table -->
     <div class="card inspo">
-      <h2>Category Suggestions <small>(for inspiration)</small></h2>
+      <h2><span id="categoryTitle">Category Suggestions</span> <small id="categorySmall">(for inspiration)</small></h2>
       <div class="inspo-table">
         <div class="row">
-          <div class="cell cat blue">Physical Body</div>
-          <div class="cell">Health, Fitness, Appearance</div>
+          <div class="cell cat blue" id="cat1">Physical Body</div>
+          <div class="cell" id="cat1Desc">Health, Fitness, Appearance</div>
         </div>
         <div class="row">
-          <div class="cell cat blue-light">Time</div>
-          <div class="cell">Leisure, Rest, Recreation, Art, Music, Sports, Hobbies, Travel, Vacationing, Adventure, Humor, Fun</div>
+          <div class="cell cat blue-light" id="cat2">Time</div>
+          <div class="cell" id="cat2Desc">Leisure, Rest, Recreation, Art, Music, Sports, Hobbies, Travel, Vacationing, Adventure, Humor, Fun</div>
         </div>
         <div class="row">
-          <div class="cell cat yellow-soft">Work, Career, Mission</div>
-          <div class="cell">Work, Business, Career, Mission</div>
+          <div class="cell cat yellow-soft" id="cat3">Work, Career, Mission</div>
+          <div class="cell" id="cat3Desc">Work, Business, Career, Mission</div>
         </div>
         <div class="row">
-          <div class="cell cat yellow">Finances</div>
-          <div class="cell">Earn money, Keep money, Grow money (Investments), Financial Freedom</div>
+          <div class="cell cat yellow" id="cat4">Finances</div>
+          <div class="cell" id="cat4Desc">Earn money, Keep money, Grow money (Investments), Financial Freedom</div>
         </div>
         <div class="row">
-          <div class="cell cat peach">Relationships</div>
-          <div class="cell">Family, Friends, Wife, Kids, Parenting, Significant others, Intimacy, Romance, Love <br>Physical Environment, Community, Business partners, Employees, Colleagues</div>
+          <div class="cell cat peach" id="cat5">Relationships</div>
+          <div class="cell" id="cat5Desc">Family, Friends, Wife, Kids, Parenting, Significant others, Intimacy, Romance, Love <br>Physical Environment, Community, Business partners, Employees, Colleagues</div>
         </div>
         <div class="row">
-          <div class="cell cat green">Emotions, Meaning</div>
-          <div class="cell">Spirituality, Relationship with a higher power and one's inner voice, Detachment from ego, Meditation, Stillness <br>Morals, Ethics <br>Mind, Emotion, Mental health, Intuition, how you feel about yourself <br>Personal Growth, Learning, Education, Lifelong learning</div>
+          <div class="cell cat green" id="cat6">Emotions, Meaning</div>
+          <div class="cell" id="cat6Desc">Spirituality, Relationship with a higher power and one's inner voice, Detachment from ego, Meditation, Stillness <br>Morals, Ethics <br>Mind, Emotion, Mental health, Intuition, how you feel about yourself <br>Personal Growth, Learning, Education, Lifelong learning</div>
         </div>
         <div class="row">
-          <div class="cell cat green-light">Contribute</div>
-          <div class="cell">Contributing, Giving Back (Time, Talent, Treasure, Legacy)<br>Celebrate</div>
+          <div class="cell cat green-light" id="cat7">Contribute</div>
+          <div class="cell" id="cat7Desc">Contributing, Giving Back (Time, Talent, Treasure, Legacy)<br>Celebrate</div>
         </div>
       </div>
     </div>
 
     <div class="card guide">
-      <h2>Wheel of Life – Quick Guide</h2>
-
-      <p>The “Wheel of Life” is a tool for taking a personal snapshot of where you currently stand in different areas of your life. It helps you look at these areas individually and assess how satisfied you are with each one. This can make imbalances and areas for improvement easier to recognize and help you identify where change might be beneficial.</p>
-
-      <p>The basic idea is that our lives rest on several pillars. In the Wheel of Life, these pillars become the spokes of a wheel. The wheel runs most smoothly when the different areas of your life are reasonably balanced.</p>
-
-      <p>First, choose the areas of life that best fit you and your situation. The suggestion list contains common main categories along with examples of what they typically include. You can use these categories as they are or adapt them to suit your life.</p>
-
-      <p>Then rate how satisfied you currently are with each area:</p>
-      <ul>
-        <li>1 = very dissatisfied</li>
-        <li>10 = completely satisfied</li>
-      </ul>
-
-      <p>Once you have rated all areas, look at the chart. It visualizes your life as a whole and makes differences and possible imbalances easier to see. Consider whether there are areas where you would like to invest more of your time and energy.</p>
-
-      <p>The goal is not to get every area to a 10. Instead, the aim is to distribute your time and energy in a way that allows the areas that matter to you to develop in a balanced way.</p>
-
-      <p>The Wheel of Life becomes especially valuable when you repeat the assessment regularly, for example monthly or quarterly. This allows you to see how your life changes over time and whether you are moving in the direction you want.</p>
+      <h2 id="guideTitle">Wheel of Life – Quick Guide</h2>
+      <div id="guideEn">
+        <p>The “Wheel of Life” is a tool for taking a personal snapshot of where you currently stand in different areas of your life. It helps you look at these areas individually and assess how satisfied you are with each one. This can make imbalances and areas for improvement easier to recognize and help you identify where change might be beneficial.</p>
+        <p>The basic idea is that our lives rest on several pillars. In the Wheel of Life, these pillars become the spokes of a wheel. The wheel runs most smoothly when the different areas of your life are reasonably balanced.</p>
+        <p>First, choose the areas of life that best fit you and your situation. The suggestion list contains common main categories along with examples of what they typically include. You can use these categories as they are or adapt them to suit your life.</p>
+        <p>Then rate how satisfied you currently are with each area:</p>
+        <ul><li>1 = very dissatisfied</li><li>10 = completely satisfied</li></ul>
+        <p>Once you have rated all areas, look at the chart. It visualizes your life as a whole and makes differences and possible imbalances easier to see. Consider whether there are areas where you would like to invest more of your time and energy.</p>
+        <p>The goal is not to get every area to a 10. Instead, the aim is to distribute your time and energy in a way that allows the areas that matter to you to develop in a balanced way.</p>
+        <p>The Wheel of Life becomes especially valuable when you repeat the assessment regularly, for example monthly or quarterly. This allows you to see how your life changes over time and whether you are moving in the direction you want.</p>
+      </div>
+      <div id="guideDe" hidden>
+        <p>Das „Wheel of Life“ beziehungsweise Lebensrad ist ein Werkzeug zur persönlichen Standortbestimmung. Es hilft Dir dabei, verschiedene Lebensbereiche getrennt voneinander zu betrachten und einzuschätzen, wie zufrieden Du aktuell mit ihnen bist. Dadurch kannst Du Ungleichgewichte und verbesserungsbedürftige Bereiche leichter erkennen und daraus ableiten, wo Veränderungen hilfreich sein könnten.</p>
+        <p>Der Grundgedanke ist, dass unser Leben auf verschiedenen Säulen ruht. Aus Sicht des Lebensrades bilden diese Säulen die einzelnen Speichen eines Rades. Das Rad läuft am besten, wenn die verschiedenen Bereiche möglichst ausgewogen entwickelt sind.</p>
+        <p>Wähle zunächst die Lebensbereiche aus, die am besten zu Dir und Deinem Leben passen. Die Vorschlagsliste enthält typische Hauptkategorien und Beispiele dafür, welche Themen diese umfassen können. Du kannst die Kategorien übernehmen oder individuell anpassen.</p>
+        <p>Bewerte anschließend, wie zufrieden Du aktuell mit jedem Lebensbereich bist:</p>
+        <ul><li>1 = sehr unzufrieden</li><li>10 = vollständig zufrieden</li></ul>
+        <p>Wenn Du alle Bereiche bewertet hast, betrachte den erzeugten Chart. Er visualisiert die Gesamtheit Deiner Lebensbereiche und macht Unterschiede und mögliche Ungleichgewichte sichtbar. Überlege dabei, ob es Bereiche gibt, in die Du künftig mehr Zeit und Energie investieren möchtest.</p>
+        <p>Das Ziel ist nicht, jeden Bereich auf eine 10 zu bringen. Vielmehr geht es darum, Deine Zeit und Energie so zu verteilen, dass sich die für Dich wichtigen Lebensbereiche möglichst ausgewogen entwickeln.</p>
+        <p>Besonders wertvoll wird das Lebensrad, wenn Du diese Einschätzung regelmäßig wiederholst, beispielsweise monatlich oder quartalsweise. So kannst Du Veränderungen über längere Zeit erkennen und überprüfen, ob Du Dich in die gewünschte Richtung entwickelst.</p>
+      </div>
     </div>
-
-      <footer class="footer-note"></footer>      
-    © 2025 Sven Armbrüster
-  </footer>
+      <footer class="footer-note">© 2025 Sven Armbrüster</footer>
   </div>
 
 
   <script>
-    // Labels from your table
-    const defaults = [
-      "Physical Body",
-      "Time",
-      "Work, Career, Mission",
-      "Finances",
-      "Relationships",
-      "Emotions, Meaning",
-      "Personal Growth & Learning",
-      "Contribute"
-    ];
+    // Default labels for both languages
+    const defaultsEn = ["Physical Body","Time","Work, Career, Mission","Finances","Relationships","Emotions, Meaning","Personal Growth & Learning","Contribute"];
+    const defaultsDe = ["Körper & Gesundheit","Zeit","Arbeit, Beruf & Aufgabe","Finanzen","Beziehungen","Emotionen & Sinn","Persönliches Wachstum & Lernen","Beitrag für andere"];
+    let currentLanguage = 'en';
 
     // Color mapping to use in charts (matches the inspiration table rows)
     const areaColors = {
@@ -217,7 +221,15 @@
       "Personal Growth & Learning": '#8fd9c1',
       "Contribute": getComputedStyle(document.documentElement).getPropertyValue('--c-green-light').trim() || '#c2f0a2',
       "Other_9": '#c6b2f7',
-      "Other_10": '#ff9d76'
+      "Other_10": '#ff9d76',
+      "Körper & Gesundheit": '#8faeff',
+      "Zeit": '#a9c9ff',
+      "Arbeit, Beruf & Aufgabe": '#ffeeb8',
+      "Finanzen": '#ffdb6e',
+      "Beziehungen": '#ffb6a2',
+      "Emotionen & Sinn": '#a8e0a4',
+      "Persönliches Wachstum & Lernen": '#8fd9c1',
+      "Beitrag für andere": '#c2f0a2'
     };
 
     const rowsEl = document.getElementById('rows');
@@ -226,8 +238,11 @@
     const renderBtn = document.getElementById('renderBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const chartTypeEl = document.getElementById('chartType');
+    const personNameEl = document.getElementById('personName');
     const filledEl = document.getElementById('filled');
     const showScaleEl = document.getElementById('showScale');
+    const langEnBtn = document.getElementById('langEn');
+    const langDeBtn = document.getElementById('langDe');
 
     let chart;
 
@@ -277,7 +292,8 @@ const PolarOuterLabels = {
       areasEl.value = n;
       rowsEl.innerHTML = '';
       for(let i=0;i<n;i++){
-        const label = defaults[i] || `Area ${i+1}`;
+        const defaults = currentLanguage === 'de' ? defaultsDe : defaultsEn;
+        const label = defaults[i] || `${currentLanguage === 'de' ? 'Bereich' : 'Area'} ${i+1}`;
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><input class="label-input" value="${label}"/></td>
@@ -343,8 +359,164 @@ const PolarOuterLabels = {
     }
 
     function download(){
-      if(!chart) return; const a=document.createElement('a'); a.download='wheel-of-life.png'; a.href=chart.toBase64Image(); a.click();
+      if(!chart) return;
+
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+
+      const rawName = (personNameEl?.value || '').trim();
+      const displayName = rawName || (currentLanguage === 'de' ? 'Ohne Name' : 'Unnamed');
+      const safeName = displayName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9 _-]/g, '')
+        .trim()
+        .replace(/\s+/g, '_') || 'Unnamed';
+
+      const titleText = `${displayName} ${dateStr}`;
+
+      const chartCanvas = document.getElementById('chart');
+      const exportCanvas = document.createElement('canvas');
+      const extraTop = 64;
+      exportCanvas.width = chartCanvas.width;
+      exportCanvas.height = chartCanvas.height + extraTop;
+
+      const ctx = exportCanvas.getContext('2d');
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#0b0d10';
+      ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#edf2ff';
+      ctx.font = '12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(titleText, exportCanvas.width / 2, 30);
+
+      ctx.drawImage(chartCanvas, 0, extraTop);
+
+      const a = document.createElement('a');
+      a.download = `Wheel-of-life_${safeName}_${dateStr}.png`;
+      a.href = exportCanvas.toDataURL('image/png');
+      a.click();
     }
+
+
+    const translations = {
+      en: {
+        title:'Wheel of Life',
+        subtitle:'Choose the number of areas, enter values (1–10), and render your chart. You can switch between Radar (spider) and Polar Area styles.',
+        areasLabel:'Number of areas',
+        chartTypeLabel:'Chart type',
+        personNameLabel:'Name',
+        personNamePlaceholder:'Enter your name',
+        radarOption:'Radar (Spider)',
+        polarOption:'Polar Area',
+        filledLabel:'Filled (Radar)',
+        showScaleLabel:'Show radial grid',
+        rebuild:'Build inputs',
+        renderBtn:'Render chart',
+        downloadBtn:'Download PNG',
+        labelHeader:'Label',
+        valueHeader:'Value (1–10)',
+        tipLabel:'Tip:',
+        tipText:'Use the labels you like; values update live as you drag the sliders or edit the number fields.',
+        categoryTitle:'Category Suggestions',
+        categorySmall:'(for inspiration)',
+        guideTitle:'Wheel of Life – Quick Guide',
+        categories:[
+          ['Physical Body','Health, Fitness, Appearance'],
+          ['Time','Leisure, Rest, Recreation, Art, Music, Sports, Hobbies, Travel, Vacationing, Adventure, Humor, Fun'],
+          ['Work, Career, Mission','Work, Business, Career, Mission'],
+          ['Finances','Earn money, Keep money, Grow money (Investments), Financial Freedom'],
+          ['Relationships','Family, Friends, Wife, Kids, Parenting, Significant others, Intimacy, Romance, Love <br>Physical Environment, Community, Business partners, Employees, Colleagues'],
+          ['Emotions, Meaning',"Spirituality, Relationship with a higher power and one's inner voice, Detachment from ego, Meditation, Stillness <br>Morals, Ethics <br>Mind, Emotion, Mental health, Intuition, how you feel about yourself <br>Personal Growth, Learning, Education, Lifelong learning"],
+          ['Contribute','Contributing, Giving Back (Time, Talent, Treasure, Legacy)<br>Celebrate']
+        ]
+      },
+      de: {
+        title:'Lebensrad',
+        subtitle:'Wähle die Anzahl der Lebensbereiche, gib Werte von 1 bis 10 ein und erstelle Dein Diagramm. Du kannst zwischen Radar- und Polarflächendarstellung wechseln.',
+        areasLabel:'Anzahl der Bereiche',
+        chartTypeLabel:'Diagrammtyp',
+        personNameLabel:'Name',
+        personNamePlaceholder:'Gib Deinen Namen ein',
+        radarOption:'Radar (Spinnennetz)',
+        polarOption:'Polarfläche',
+        filledLabel:'Gefüllt (Radar)',
+        showScaleLabel:'Radiales Raster anzeigen',
+        rebuild:'Eingabefelder erstellen',
+        renderBtn:'Diagramm erstellen',
+        downloadBtn:'PNG herunterladen',
+        labelHeader:'Bereich',
+        valueHeader:'Wert (1–10)',
+        tipLabel:'Tipp:',
+        tipText:'Du kannst die Bezeichnungen frei anpassen. Die Werte werden beim Verschieben der Regler oder Ändern der Zahlenfelder direkt aktualisiert.',
+        categoryTitle:'Vorschläge für Lebensbereiche',
+        categorySmall:'(zur Inspiration)',
+        guideTitle:'Lebensrad – Kurzanleitung',
+        categories:[
+          ['Körper & Gesundheit','Gesundheit, Fitness, körperliches Wohlbefinden, Erscheinungsbild'],
+          ['Zeit','Freizeit, Erholung, Regeneration, Kunst, Musik, Sport, Hobbys, Reisen, Urlaub, Abenteuer, Humor, Spaß'],
+          ['Arbeit, Beruf & Aufgabe','Arbeit, Unternehmen, Beruf, Karriere, persönliche Aufgabe oder Mission'],
+          ['Finanzen','Geld verdienen, Geld behalten, Vermögen aufbauen, Investitionen, finanzielle Freiheit'],
+          ['Beziehungen','Familie, Freunde, Partnerschaft, Kinder, Elternschaft, Intimität, Romantik, Liebe <br>Umfeld, Gemeinschaft, Geschäftspartner, Mitarbeiter, Kollegen'],
+          ['Emotionen & Sinn','Spiritualität, innere Stimme, Loslösung vom Ego, Meditation, Stille <br>Moral, Ethik <br>Geist, Emotionen, mentale Gesundheit, Intuition, Selbstbild <br>Persönliches Wachstum, Lernen, Bildung, lebenslanges Lernen'],
+          ['Beitrag für andere','Beitragen, etwas zurückgeben durch Zeit, Fähigkeiten oder finanzielle Mittel, Vermächtnis<br>Erfolge und das Leben würdigen']
+        ]
+      }
+    };
+
+    function setLanguage(lang){
+      if (!translations[lang]) return;
+
+      currentLanguage = lang;
+      const t = translations[lang];
+      document.documentElement.lang = lang;
+
+      const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      };
+
+      ['title','subtitle','areasLabel','chartTypeLabel','personNameLabel','radarOption','polarOption',
+       'filledLabel','showScaleLabel','rebuild','renderBtn','downloadBtn','labelHeader','valueHeader',
+       'tipLabel','tipText','categoryTitle','categorySmall','guideTitle']
+        .forEach(id => setText(id, t[id]));
+
+      if (personNameEl) personNameEl.placeholder = t.personNamePlaceholder;
+
+      t.categories.forEach((item, i) => {
+        const cat = document.getElementById(`cat${i+1}`);
+        const desc = document.getElementById(`cat${i+1}Desc`);
+        if (cat) cat.textContent = item[0];
+        if (desc) desc.innerHTML = item[1];
+      });
+
+      const guideEn = document.getElementById('guideEn');
+      const guideDe = document.getElementById('guideDe');
+      if (guideEn) guideEn.hidden = lang !== 'en';
+      if (guideDe) guideDe.hidden = lang !== 'de';
+
+      langEnBtn.classList.toggle('active', lang === 'en');
+      langDeBtn.classList.toggle('active', lang === 'de');
+
+      const from = lang === 'de' ? defaultsEn : defaultsDe;
+      const to   = lang === 'de' ? defaultsDe : defaultsEn;
+
+      rowsEl.querySelectorAll('tr').forEach(tr => {
+        const input = tr.querySelector('.label-input');
+        if (!input) return;
+        const idx = from.indexOf(input.value.trim());
+        if (idx >= 0) input.value = to[idx];
+      });
+
+      render();
+    }
+
+    langEnBtn.addEventListener('click', () => setLanguage('en'));
+    langDeBtn.addEventListener('click', () => setLanguage('de'));
 
     rebuildBtn.addEventListener('click', buildRows);
     renderBtn.addEventListener('click', render);
@@ -355,6 +527,7 @@ const PolarOuterLabels = {
 
     // initial
     buildRows();
+    setLanguage('en');
   </script>
 </body>
 </html>
